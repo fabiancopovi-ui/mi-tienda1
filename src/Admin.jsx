@@ -1,93 +1,84 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-export default function Admin() {
+function AdminPanel() {
+  const [productos, setProductos] = useState([]);
   const [nombre, setNombre] = useState("");
   const [precio, setPrecio] = useState("");
-  const [fotos, setFotos] = useState([]);
+  const [categoria, setCategoria] = useState("");
 
-  const guardarProducto = async () => {
-    if (!nombre || !precio || fotos.length === 0) {
-      alert("Completa nombre, precio y sube al menos una foto.");
-      return;
-    }
+  // Traer productos desde el backend
+  useEffect(() => {
+    fetch("/api/productos")
+      .then((res) => res.json())
+      .then((data) => setProductos(data.productos || []));
+  }, []);
 
-    const carpeta = nombre.trim();
-    const imagenes = fotos.map((f, i) => `${i + 1}.jpeg`);
+  // Agregar un producto nuevo
+  const agregarProducto = () => {
+    if (!nombre || !precio) return alert("Completa nombre y precio");
+    const nuevoProducto = { nombre, precio, categoria };
+    const actualizados = [...productos, nuevoProducto];
 
-    // Cargar el JSON actual
-    let data = await fetch("/src/data.json").then(r => r.json());
-
-    // Nuevo producto
-    const nuevo = {
-      id: nombre.toLowerCase().replace(/ /g, "-"),
-      nombre,
-      precio: Number(precio),
-      carpeta,
-      imagenes
-    };
-
-    data.productos.push(nuevo);
-
-    // Guardar el JSON actualizado
-    await fetch("/src/data.json", {
-      method: "PUT",
+    fetch("/api/productos", {
+      method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data, null, 2)
-    });
+      body: JSON.stringify({ productos: actualizados }),
+    })
+      .then((res) => res.json())
+      .then(() => {
+        setProductos(actualizados);
+        setNombre("");
+        setPrecio("");
+        setCategoria("");
+      });
+  };
 
-    alert("Producto guardado!");
-
-    setNombre("");
-    setPrecio("");
-    setFotos([]);
+  // Borrar un producto
+  const borrarProducto = (index) => {
+    const actualizados = productos.filter((_, i) => i !== index);
+    fetch("/api/productos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ productos: actualizados }),
+    }).then(() => setProductos(actualizados));
   };
 
   return (
-    <div style={{ padding: 20, maxWidth: 500, margin: "0 auto" }}>
-      <h1>Panel Admin</h1>
+    <div style={{ padding: "20px" }}>
+      <h1>🛒 Panel de Administración — Mi Tienda</h1>
 
-      <label>Nombre del producto</label>
+      <h2>Agregar Producto</h2>
       <input
+        type="text"
+        placeholder="Nombre"
         value={nombre}
         onChange={(e) => setNombre(e.target.value)}
-        style={{ width: "100%", marginBottom: 10 }}
       />
-
-      <label>Precio</label>
       <input
+        type="text"
+        placeholder="Precio"
         value={precio}
         onChange={(e) => setPrecio(e.target.value)}
-        type="number"
-        style={{ width: "100%", marginBottom: 10 }}
       />
-
-      <label>Fotos (JPEG)</label>
       <input
-        type="file"
-        multiple
-        accept="image/jpeg"
-        onChange={(e) => setFotos([...e.target.files])}
-        style={{ marginBottom: 10 }}
+        type="text"
+        placeholder="Categoría"
+        value={categoria}
+        onChange={(e) => setCategoria(e.target.value)}
       />
+      <button onClick={agregarProducto}>Agregar</button>
 
-      {fotos.length > 0 && (
-        <p>{fotos.length} fotos seleccionadas</p>
-      )}
-
-      <button
-        onClick={guardarProducto}
-        style={{
-          width: "100%",
-          padding: 10,
-          background: "black",
-          color: "white",
-          border: "none",
-          borderRadius: 5,
-          marginTop: 10
-        }}
-      >
-        Guardar producto
-      </button>
+      <h2>Productos Existentes</h2>
+      <ul>
+        {productos.map((prod, index) => (
+          <li key={index}>
+            {prod.nombre} - ${prod.precio}{" "}
+            <button onClick={() => borrarProducto(index)}>Borrar</button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
+
+export default AdminPanel;
