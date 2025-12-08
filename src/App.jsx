@@ -1,36 +1,37 @@
 // src/App.jsx
-import React, { useState } from "react";
-import Admin from "./Admin";
-import Tienda from "./Tienda"; // Aquí deberías importar tu componente de tienda normal
+import React, { useEffect, useState } from "react";
+import Admin from "./Admin.jsx";
 
 function App() {
-  const [modoAdmin, setModoAdmin] = useState(false);
+  const [productos, setProductos] = useState([]);
+  const [mostrarAdmin, setMostrarAdmin] = useState(false);
+
+  // Cargar productos desde API
+  useEffect(() => {
+    fetch("/api/productos")
+      .then((res) => res.json())
+      .then((data) => setProductos(data.productos || []));
+  }, []);
 
   return (
-    <div>
-      {modoAdmin ? (
+    <div style={{ padding: "20px" }}>
+      <button onClick={() => setMostrarAdmin(!mostrarAdmin)}>
+        {mostrarAdmin ? "Cerrar Panel Admin" : "Abrir Panel Admin"}
+      </button>
+
+      {mostrarAdmin ? (
         <Admin />
       ) : (
-        <>
-          <button
-            onClick={() => setModoAdmin(true)}
-            style={{
-              position: "fixed",
-              top: 10,
-              right: 10,
-              padding: "10px 15px",
-              backgroundColor: "#007bff",
-              color: "white",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-              zIndex: 1000,
-            }}
-          >
-            Abrir Panel de Admin
-          </button>
-          <Tienda />
-        </>
+        <div>
+          <h1>🛒 Mi Tienda</h1>
+          <ul>
+            {productos.map((p, i) => (
+              <li key={i}>
+                {p.nombre} - ${p.precio} - {p.categoria}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   );
