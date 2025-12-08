@@ -1,6 +1,12 @@
-const express = require("express");
-const path = require("path");
-const fs = require("fs");
+// server.js
+import express from "express";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
+
+// Necesario para __dirname en ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -21,7 +27,7 @@ app.get("/api/productos", (req, res) => {
 
 // Servir React para cualquier otra ruta (SPA)
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+  res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
 
 // Iniciar servidor
