@@ -1,4 +1,3 @@
-// server.js
 import express from "express";
 import fs from "fs";
 import path from "path";
@@ -6,8 +5,8 @@ import path from "path";
 const app = express();
 app.use(express.json());
 
-const PORT = 3000;
-const productosPath = path.join("public", "productos.json");
+const PORT = process.env.PORT || 3000;
+const productosPath = path.join(process.cwd(), "public", "productos.json");
 
 // Endpoint GET para productos
 app.get("/api/productos", (req, res) => {
@@ -19,7 +18,7 @@ app.get("/api/productos", (req, res) => {
   }
 });
 
-// Endpoint POST para agregar productos
+// Endpoint POST para agregar productos (opcional en producción)
 app.post("/api/productos", (req, res) => {
   try {
     const { productos } = req.body;
@@ -34,11 +33,11 @@ app.post("/api/productos", (req, res) => {
 });
 
 // Servir archivos estáticos de React
-app.use(express.static("dist"));
+app.use(express.static(path.join(process.cwd(), "dist")));
 
-// Esto asegura que cualquier ruta devuelva index.html (para SPA)
+// SPA fallback
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "dist", "index.html"));
+  res.sendFile(path.join(process.cwd(), "dist", "index.html"));
 });
 
 app.listen(PORT, () => {
