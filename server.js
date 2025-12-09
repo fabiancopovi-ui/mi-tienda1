@@ -1,30 +1,42 @@
 // server.js
 import express from "express";
-import path from "path";
 import fs from "fs";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import path from "path";
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+app.use(express.json());
 
-// Servir archivos estáticos de la carpeta dist
-app.use(express.static(path.join(__dirname, "dist")));
+const PORT = 3000;
+const productosPath = path.join("public", "productos.json");
 
-// Endpoint para productos
+// Endpoint GET para productos
 app.get("/api/productos", (req, res) => {
-  const productosPath = path.join(__dirname, "public", "productos.json");
-  if (fs.existsSync(productosPath)) {
-    const data = fs.readFileSync(productosPath, "utf-8");
-    res.json(JSON.parse(data));
-  } else {
-    res.json({ productos: [] });
+  try {
+    const data = JSON.parse(fs.readFileSync(productosPath, "utf-8"));
+    res.json({ productos: data });
+  } catch (err) {
+    res.status(500).json({ error: "No se pudo leer productos.json" });
   }
 });
 
-// Para cualquier otra ruta, servir index.html (SPA)
+// Endpoint POST para agregar productos
+app.post("/api/productos", (req, res) => {
+  try {
+    const { productos } = req.body;
+    if (!Array.isArray(productos)) {
+      return res.status(400).json({ error: "Formato inválido" });
+    }
+    fs.writeFileSync(productosPath, JSON.stringify(productos, null, 2));
+    res.json({ ok: true, productos });
+  } catch (err) {
+    res.status(500).json({ error: "No se pudo guardar productos.json" });
+  }
+});
+
+// Servir archivos estáticos de React
+app.use(express.static("dist"));
+
+// Esto asegura que cualquier ruta devuelva index.html (para SPA)
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "dist", "index.html"));
 });

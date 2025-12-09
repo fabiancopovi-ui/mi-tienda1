@@ -10,12 +10,24 @@ function App() {
   useEffect(() => {
     fetch("/api/productos")
       .then((res) => res.json())
-      .then((data) => setProductos(data.productos || []));
+      .then((data) => setProductos(data.productos || []))
+      .catch((err) => console.error("Error cargando productos:", err));
   }, []);
 
   return (
-    <div style={{ padding: "20px" }}>
-      <button onClick={() => setMostrarAdmin(!mostrarAdmin)}>
+    <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
+      <button
+        onClick={() => setMostrarAdmin(!mostrarAdmin)}
+        style={{
+          padding: "10px 15px",
+          backgroundColor: "#007BFF",
+          color: "#fff",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+          marginBottom: "20px",
+        }}
+      >
         {mostrarAdmin ? "Cerrar Panel Admin" : "Abrir Panel Admin"}
       </button>
 
@@ -27,7 +39,7 @@ function App() {
           <ul>
             {productos.map((p, i) => (
               <li key={i}>
-                {p.nombre} - ${p.precio} - {p.categoria}
+                {p.nombre} - ${p.precio} - {p.categoria || "Sin categoría"}
               </li>
             ))}
           </ul>
