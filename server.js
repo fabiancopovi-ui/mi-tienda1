@@ -1,12 +1,16 @@
 import express from "express";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
-const productosPath = path.join(process.cwd(), "public", "productos.json");
+const productosPath = path.join(__dirname, "public", "productos.json");
 
 // Endpoint GET para productos
 app.get("/api/productos", (req, res) => {
@@ -18,7 +22,7 @@ app.get("/api/productos", (req, res) => {
   }
 });
 
-// Endpoint POST para agregar productos (opcional en producción)
+// Endpoint POST para agregar productos
 app.post("/api/productos", (req, res) => {
   try {
     const { productos } = req.body;
@@ -32,12 +36,12 @@ app.post("/api/productos", (req, res) => {
   }
 });
 
-// Servir archivos estáticos de React
-app.use(express.static(path.join(process.cwd(), "dist")));
+// Servir archivos estáticos
+app.use(express.static(path.join(__dirname, "dist")));
 
-// SPA fallback
+// SPA: cualquier ruta devuelve index.html
 app.get("*", (req, res) => {
-  res.sendFile(path.join(process.cwd(), "dist", "index.html"));
+  res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
 
 app.listen(PORT, () => {
